@@ -21,11 +21,15 @@ namespace DataStructures.RandomSelector.Test {
 
             var result = TestEqualityOfLinearVsBinarySearch();
 
-            Debug.Log("Do both functions match?:" + result);
+            Debug.Log("Do both searches (linear and binary) produce identical results? " + (result?"Yes":"No"));
             
-            int optimalBreakpoint = FindOptimalBreakpoint();
+            int optimalBreakpointArray = FindOptimalBreakpointArray();
 
-            Debug.Log("Optimal breakpoint is at array size of " + optimalBreakpoint);
+            Debug.Log("Optimal breakpoint for arrays is at size of " + optimalBreakpointArray);
+            
+            int optimalBreakpointList = FindOptimalBreakpointList();
+
+            Debug.Log("Optimal breakpoint for lists is at size of " + optimalBreakpointList);
         }
         
 
@@ -45,7 +49,7 @@ namespace DataStructures.RandomSelector.Test {
                 float u = i / 999999f;
                 float r = (float) random.NextDouble();
 
-                float[] randomWeights = RandomMath.RandomWeightsArray(16);
+                float[] randomWeights = RandomMath.RandomWeightsArray(random, 33);
                 
                 RandomMath.BuildCumulativeDistribution(randomWeights);
                 
@@ -73,10 +77,9 @@ namespace DataStructures.RandomSelector.Test {
             return true;
         }
         
-        
         // time both searches (linear and binary (log)), and find optimal breakpoint - where to use which for maximal performance
-        int FindOptimalBreakpoint() {
-
+        int FindOptimalBreakpointArray() {
+        
             int optimalBreakpoint = 2;
 
             var random = new System.Random();
@@ -86,54 +89,153 @@ namespace DataStructures.RandomSelector.Test {
 
             float lin = 0f;
             float log = 1f;
-
+            
             // continue increasing "optimalBreakpoint" until linear becomes slower than log
             // result is around 15-16, varies a bit due to random nature of test
             while (lin <= log) {
             
-                int numOfTestsPerRandomWeights = 100000;
-                int numOfChanges = 1000;
+                int numOfDiffArrays = 100;
+                int numOfTestPerArr = 10000;
 
+                // u = uniform grid, r = uniform random 
                 float u, r;
                 ///Linear Search
-                stopwatchLinear.Reset();
-                stopwatchLinear.Start();
-
-                RandomMath.RandomWeightsArray(optimalBreakpoint);
-                
-                for (int i = 0; i < numOfTests; i++) {
-
-                    u = i / (numOfTests - 1f);
-                    linearRandomSelector.SelectRandomItem(u);
-                    
-                    r = (float)random.NextDouble();
-                    linearRandomSelector.SelectRandomItem(r);
-                }
-
                 stopwatchLinear.Stop();
+                stopwatchLinear.Reset();
+
+                float[] items = RandomMath.IdentityArray(optimalBreakpoint);
+                float selectedItem; //here just to simulate selecting from array
+                float[] arr = new float[optimalBreakpoint];
+
+                for (int k = 0; k < numOfDiffArrays; k++) {
+
+                    RandomMath.RandomWeightsArray(ref arr, random);
+                    RandomMath.BuildCumulativeDistribution(arr);
+
+                    stopwatchLinear.Start();
+                    for (int i = 0; i < numOfTestPerArr; i++) {
+
+                        u = i / (numOfTestPerArr - 1f);
+                        selectedItem = items[arr.SelectIndexLinearSearch(u)];
+
+                        r = (float) random.NextDouble();
+                        selectedItem = items[arr.SelectIndexLinearSearch(r)];
+                    }
+
+                    stopwatchLinear.Stop();
+                }
 
                 lin = stopwatchLinear.ElapsedMilliseconds;
 
-                ///Binary Search
+                /// Binary Search
+                stopwatchBinary.Stop();
                 stopwatchBinary.Reset();
-                stopwatchBinary.Start();
+                
+                for (int k = 0; k < numOfDiffArrays; k++) {
 
-                for (int i = 0; i < numOfTests; i++) {
+                    RandomMath.RandomWeightsArray(ref arr, random);
+                    RandomMath.BuildCumulativeDistribution(arr);
 
-                    u = i / (numOfTests - 1f);
-                    linearRandomSelector.SelectRandomItemBinarySearch(u);
+                    stopwatchBinary.Start();
+                    for (int i = 0; i < numOfTestPerArr; i++) {
 
-                    r = (float) random.NextDouble();
-                    linearRandomSelector.SelectRandomItemBinarySearch(r);
+                        u = i / (numOfTestPerArr - 1f);
+                        selectedItem = items[arr.SelectIndexBinarySearch(u)];
+
+                        r = (float) random.NextDouble();
+                        selectedItem = items[arr.SelectIndexBinarySearch(r)];
+                    }
+                    stopwatchBinary.Stop();
                 }
 
-                stopwatchBinary.Stop();
-                
                 log = stopwatchBinary.ElapsedMilliseconds;
 
                 optimalBreakpoint++;
             }
+            
+            return optimalBreakpoint;
+        }
 
+        int FindOptimalBreakpointList() {
+
+            int optimalBreakpoint = 2;
+
+            var random = new System.Random();
+
+            Stopwatch stopwatchLinear = new Stopwatch();
+            Stopwatch stopwatchBinary = new Stopwatch();
+
+            float lin = 0f;
+            float log = 1f;
+
+            // continue increasing "optimalBreakpoint" until linear becomes slower than log
+            // result is around 15-16, varies a bit due to random nature of test
+            while (lin <= log) {
+
+                int numOfDiffArrays = 100;
+                int numOfTestPerArr = 10000;
+
+                // u = uniform grid, r = uniform random 
+                float u, r;
+                ///Linear Search
+                stopwatchLinear.Stop();
+                stopwatchLinear.Reset();
+
+                List<float> items = RandomMath.IdentityList(optimalBreakpoint);
+
+                float selectedItem; //simulate selecting from array
+
+                List<float> list = new List<float>(optimalBreakpoint);
+                
+                for(int i = 0; i < optimalBreakpoint; i++)
+                    list.Add(0f);
+                
+                for (int k = 0; k < numOfDiffArrays; k++) {
+
+                    RandomMath.RandomWeightsList(ref list, random);
+                    RandomMath.BuildCumulativeDistribution(list);
+
+                    stopwatchLinear.Start();
+                    for (int i = 0; i < numOfTestPerArr; i++) {
+
+                        u = i / (numOfTestPerArr - 1f);
+                        selectedItem = items[list.SelectIndexLinearSearch(u)];
+
+                        r = (float) random.NextDouble();
+                        selectedItem = items[list.SelectIndexLinearSearch(r)];
+                    }
+
+                    stopwatchLinear.Stop();
+                }
+
+                lin = stopwatchLinear.ElapsedMilliseconds;
+
+                /// Binary Search
+                stopwatchBinary.Stop();
+                stopwatchBinary.Reset();
+                
+                for (int k = 0; k < numOfDiffArrays; k++) {
+
+                    RandomMath.RandomWeightsList(ref list, random);
+                    RandomMath.BuildCumulativeDistribution(list);
+
+                    stopwatchBinary.Start();
+                    for (int i = 0; i < numOfTestPerArr; i++) {
+
+                        u = i / (numOfTestPerArr - 1f);
+                        selectedItem = items[list.SelectIndexBinarySearch(u)];
+
+                        r = (float) random.NextDouble();
+                        selectedItem = items[list.SelectIndexBinarySearch(r)];
+                    }
+                    stopwatchBinary.Stop();
+
+                }
+
+                log = stopwatchBinary.ElapsedMilliseconds;
+
+                optimalBreakpoint++;
+            }
 
             return optimalBreakpoint;
         }

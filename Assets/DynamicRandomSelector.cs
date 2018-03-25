@@ -90,7 +90,7 @@ namespace DataStructures.RandomSelector {
             // 16 is break point
             // if CDA array is smaller than 16, then pick linear search random selector, else pick binary search selector
             // number 16 was calculated empirically (10 million random picks on both linear and binary to see where their performance is similar - crossing point)
-            if (CDL.Count < 16) {
+            if (CDL.Count < RandomMath.ListBreakpoint) {
                 _selectRandomItem = SelectLinearSearch;
             }
             else {

@@ -15,9 +15,9 @@ namespace DataStructures.RandomSelector.Math {
 
     public static class RandomMath {
 
-        public static readonly int ArrayBreakpoint = 16;
+        public static readonly int ArrayBreakpoint = 32;
         
-        public static readonly int ListBreakpoint = 16; //? to find out
+        public static readonly int ListBreakpoint = 21; //? to find out
         
         public static void BuildCumulativeDistribution(List<float> CDA) {
 
@@ -40,8 +40,8 @@ namespace DataStructures.RandomSelector.Math {
             // Make Cummulative Distribution Array
             for (int i = 0; i < Length; i++) {
 
-                Sum += CDA[i];
-                CDA[i] = (float) (Sum * k); //k, the normalization constant is applied here
+                Sum += CDA[i] * k; //k, the normalization constant is applied here
+                CDA[i] = (float) Sum; 
             }
 
             CDA[Length - 1] = 1f; //last item of CDA is always 1, I do this because numerical inaccurarcies add up and last item probably wont be 1
@@ -69,8 +69,8 @@ namespace DataStructures.RandomSelector.Math {
             // Make Cummulative Distribution Array
             for (int i = 0; i < Length; i++) {
 
-                Sum += CDA[i];
-                CDA[i] = (float) (Sum * k); //k, the normalization constant is applied here
+                Sum += CDA[i] * k; //k, the normalization constant is applied here
+                CDA[i] = (float) Sum; 
             }
 
             CDA[Length - 1] = 1f; //last item of CDA is always 1, I do this because numerical inaccurarcies add up and last item probably wont be 1
@@ -162,14 +162,23 @@ namespace DataStructures.RandomSelector.Math {
             
             return array;
         }
+        
+       
+        public static void RandomWeightsArray(ref float[] array, System.Random r) {
+            
+            for (int i = 0; i < array.Length; i++) {
+                array[i] = (float) r.NextDouble();
 
-        public static float[] RandomWeightsArray(int length) {
+                if (array[i] == 0)
+                    i--;
+            }
+        }
 
-            var r = new System.Random();
-
+        public static float[] RandomWeightsArray(System.Random r, int length) {
+        
             float[] array = new float[length];
 
-            for (int i = 0; i < array.Length; i++) {
+            for (int i = 0; i < length; i++) {
                 array[i] = (float) r.NextDouble();
 
                 if (array[i] == 0)
@@ -177,6 +186,26 @@ namespace DataStructures.RandomSelector.Math {
             }
             return array;
         }
-        
+
+        public static List<float> IdentityList(int length) {
+
+            List<float> list = new List<float>(length);
+
+            for (int i = 0; i < length; i++)
+                list.Add(i);
+
+            return list;
+        }
+
+        public static void RandomWeightsList(ref List<float> list, System.Random r) {
+
+            for (int i = 0; i < list.Count; i++) {
+                list[i] = (float) r.NextDouble();
+
+                if (list[i] == 0)
+                    i--;
+            }
+        }
+
     }
 }
