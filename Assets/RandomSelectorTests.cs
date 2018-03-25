@@ -20,8 +20,7 @@ namespace DataStructures.RandomSelector {
             var result = TestLinearVsBinarySearch();
 
             Debug.Log("Do both functions match?:" + result);
-
-
+            
             int optimalBreakpoint = FindOptimalBreakpoint();
 
             Debug.Log("Optimal breakpoint is at array size of " + optimalBreakpoint);
@@ -103,6 +102,8 @@ namespace DataStructures.RandomSelector {
             float lin = 0f;
             float log = 1f;
 
+            // continue increasing "optimalBreakpoint" until linear becomes slower than log
+            // result is around 15-16, varies a bit due to random nature of test
             while (lin <= log) {
 
                 var linearRandomSelector = RandomSelectorBuilder<float>.Build(IdentityArray(optimalBreakpoint), RandomArray(optimalBreakpoint));

@@ -12,8 +12,8 @@ using System;
 /// </summary>
 namespace DataStructures.RandomSelector {
 
-    public class RandomSelectorBuilder<T> where T : IComparable<T> {
-
+    public class RandomSelectorBuilder<T> : IRandomSelectorBuilder<T> where T : IComparable<T> {
+    
         System.Random random;
         List<T> itemBuffer;
         List<float> weightBuffer;
@@ -31,12 +31,13 @@ namespace DataStructures.RandomSelector {
             itemBuffer.Add(item);
             weightBuffer.Add(weight);
         }
-
+        
         /// <summary>
         /// Builds RandomSelector & clears internal buffers
         /// </summary>
-        /// <returns></returns>
-        IRandomSelector<T> Build() {
+        /// <param name="seed">Seed for random selector. If you leave it -1, the internal random will generate one.</param>
+        /// <returns>Returns IRandomSelector, underlying object depends on size of items inside object.</returns>
+        public IRandomSelector<T> Build(int seed = -1) {
 
             T[] items = itemBuffer.ToArray();
             float[] CDA = weightBuffer.ToArray();
@@ -47,18 +48,14 @@ namespace DataStructures.RandomSelector {
             // Use double for more precise calculation
             double Sum = 0;
 
-            // Sum of probabilities
+            // Sum of weights
             for (int i = 0; i < CDA.Length; i++)
                 Sum += CDA[i];
 
+            // k is normalization constant
             // calculate inverse of sum and convert to float
-            // optimisation (multiplying is faster than division)
-            float k = (float) (1f / Sum);
-
-            for (int i = 0; i < CDA.Length; i++) {
-                // normalisation
-                CDA[i] *= k;
-            }
+            // this is optimisation (multiplying is faster than division)      
+            double k = (1f / Sum);
 
             Sum = 0;
 
@@ -66,20 +63,23 @@ namespace DataStructures.RandomSelector {
             for (int i = 0; i < CDA.Length; i++) {
 
                 Sum += CDA[i];
-                CDA[i] = (float) Sum;
+                CDA[i] = (float) (Sum * k); //k, the normalization constant is applied here
             }
 
             CDA[CDA.Length - 1] = 1f; //last iitem of CDA is always 1, I do this because numerical inaccurarcies add up and last item probably wont be 1
 
-            int seed = random.Next();
 
-            //if CDA array is smaller than 16, then pick linear search random selector
-            //number 16 was calculated empirically (10 million random picks on both linear and binary to see where their performance is similar - crossing point)
-            if(CDA.Length <= 16) {
+            if(seed == -1)
+                seed = random.Next();
+
+            // 16 is break point
+            // if CDA array is smaller than 16, then pick linear search random selector, else pick binary search selector
+            // number 16 was calculated empirically (10 million random picks on both linear and binary to see where their performance is similar - crossing point)
+            if(CDA.Length < 16) {
             
                 return new StaticRandomSelectorLinear<T>(items, CDA, seed);
             } else {
-                //bigger array sizes need binary search for faster lookup
+                // bigger array sizes need binary search for much faster lookup
                 return new StaticRandomSelectorBinary<T>(items, CDA, seed);
             }
         }
