@@ -12,6 +12,7 @@ using System;
 /// O(n) construction
 /// </summary>
 namespace DataStructures.RandomSelector {
+    using DataStructures.RandomSelector.Math;
 
     public class DynamicRandomSelector<T> : IRandomSelector<T>, IRandomSelectorBuilder<T> {
     
@@ -68,33 +69,12 @@ namespace DataStructures.RandomSelector {
         // returns itself
         public IRandomSelector<T> Build(int seed=-1) {
         
-            //transfer weights
+            // transfer weights
             CDL.Clear();
             CDL.AddRange(weightsList);
 
-            // Use double for more precise calculation
-            double Sum = 0;
+            RandomMath.BuildCumulativeDistribution(CDL);
             
-            // Sum of weights
-            for (int i = 0; i < CDL.Count; i++)
-                Sum += CDL[i];
-                
-            // k is normalization constant
-            // calculate inverse of sum and convert to float
-            // this is optimisation (multiplying is faster than division)
-            double k = (1f / Sum);
-            
-            Sum = 0;
-
-            // Make Cummulative Distribution List
-            for (int i = 0; i < CDL.Count; i++) {
-
-                Sum += CDL[i];
-                CDL[i] = (float) (Sum * k);
-            }
-
-            CDL[CDL.Count - 1] = 1f; // last iitem of CDA is always 1, I do this because numerical inaccurarcies add up and last item probably won't be 1
-
             if (seed == -1) {
                 // default behavior
                 // seed wasn't specified, keep same seed - avoids garbage collection from making new random
@@ -142,7 +122,7 @@ namespace DataStructures.RandomSelector {
                 index = lo + ((hi - lo) >> 1);
 
                 if (CDL[index] == randomValue) {
-                    goto breakOut;
+                    return itemsList[index];
                 }
                 if (CDL[index] < randomValue) {
                     lo = index + 1;
@@ -153,9 +133,7 @@ namespace DataStructures.RandomSelector {
             }
 
             index = lo;
-
-            breakOut:
-
+            
             return itemsList[index];
         }
 

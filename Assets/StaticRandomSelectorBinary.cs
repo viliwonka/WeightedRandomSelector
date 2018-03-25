@@ -11,6 +11,7 @@ using System;
 /// O(n) construction
 /// </summary>
 namespace DataStructures.RandomSelector {
+    using DataStructures.RandomSelector.Math;
 
     public class StaticRandomSelectorBinary<T> : IRandomSelector<T> {
 
@@ -22,72 +23,21 @@ namespace DataStructures.RandomSelector {
 
             this.items = items;
             this.CDA = CDA;
-            this.random = new System.Random(seed);
-            
+            this.random = new System.Random(seed);   
         }
-      
+
         // Binary Search on CDA
-        // Code taken out of C#s Array Binary Search & modified a little
         public T SelectRandomItem() {
 
             float randomValue = (float) random.NextDouble();
-
-            int lo = 0;
-            int hi = CDA.Length - 1;
-            int index;
-
-            while (lo <= hi) {
-
-                // calculate median
-                index = lo + ((hi - lo) >> 1);
-
-                if (CDA[index] == randomValue) {
-                    goto breakOut;
-                }
-                if (CDA[index] < randomValue) {
-                    lo = index + 1;
-                }
-                else {
-                    hi = index - 1;
-                }
-            }
-
-            index = lo;
-
-            breakOut:
-
-            return items[index];
+            
+            return items[ CDA.SelectIndexBinarySearch(randomValue) ];
         }
 
         // Binary Search on CDA
-        // Code taken out of C#s Array Binary Search & modified a little
         public T SelectRandomItem(float randomValue) {
         
-            int lo = 0;
-            int hi = CDA.Length - 1;
-            int index;
-
-            while (lo <= hi) {
-
-                // calculate median
-                index = lo + ((hi - lo) >> 1);
-
-                if (CDA[index] == randomValue) {
-                    goto breakOut;
-                }
-                if (CDA[index] < randomValue) {
-                    lo = index + 1;
-                }
-                else {
-                    hi = index - 1;
-                }
-            }
-
-            index = lo;
-
-            breakOut:
-
-            return items[index];
+            return items[ CDA.SelectIndexBinarySearch(randomValue) ];
         }
     }
 }

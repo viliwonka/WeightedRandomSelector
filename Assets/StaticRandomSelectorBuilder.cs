@@ -11,8 +11,9 @@ using System;
 /// O(n) construction
 /// </summary>
 namespace DataStructures.RandomSelector {
+    using DataStructures.RandomSelector.Math;
 
-    public class RandomSelectorBuilder<T> : IRandomSelectorBuilder<T> where T : IComparable<T> {
+    public class RandomSelectorBuilder<T> : IRandomSelectorBuilder<T> {
     
         System.Random random;
         List<T> itemBuffer;
@@ -20,8 +21,8 @@ namespace DataStructures.RandomSelector {
 
         public RandomSelectorBuilder() {
 
-            random = new System.Random();
-            itemBuffer = new List<T>();
+            random       = new System.Random();
+            itemBuffer   = new List<T>();
             weightBuffer = new List<float>();
         }
 
@@ -41,47 +42,24 @@ namespace DataStructures.RandomSelector {
 
             T[] items = itemBuffer.ToArray();
             float[] CDA = weightBuffer.ToArray();
-
+            
             itemBuffer.Clear();     // potential GC problem, read if Unity clears lists or sets count to 0
             weightBuffer.Clear();
 
-            // Use double for more precise calculation
-            double Sum = 0;
-
-            // Sum of weights
-            for (int i = 0; i < CDA.Length; i++)
-                Sum += CDA[i];
-
-            // k is normalization constant
-            // calculate inverse of sum and convert to float
-            // this is optimisation (multiplying is faster than division)      
-            double k = (1f / Sum);
-
-            Sum = 0;
-
-            // Make Cummulative Distribution Array
-            for (int i = 0; i < CDA.Length; i++) {
-
-                Sum += CDA[i];
-                CDA[i] = (float) (Sum * k); //k, the normalization constant is applied here
-            }
-
-            CDA[CDA.Length - 1] = 1f; //last iitem of CDA is always 1, I do this because numerical inaccurarcies add up and last item probably wont be 1
-
-
+            RandomMath.BuildCumulativeDistribution(CDA);
+            
             if(seed == -1)
                 seed = random.Next();
 
             // 16 is break point
             // if CDA array is smaller than 16, then pick linear search random selector, else pick binary search selector
             // number 16 was calculated empirically (10 million random picks on both linear and binary to see where their performance is similar - crossing point)
-            if(CDA.Length < 16) {
-            
+            if(CDA.Length < RandomMath.ArrayBreakpoint) 
+           
                 return new StaticRandomSelectorLinear<T>(items, CDA, seed);
-            } else {
+            else 
                 // bigger array sizes need binary search for much faster lookup
-                return new StaticRandomSelectorBinary<T>(items, CDA, seed);
-            }
+                return new StaticRandomSelectorBinary<T>(items, CDA, seed);           
         }
 
         static RandomSelectorBuilder<T> _staticBuilder = new RandomSelectorBuilder<T>();
@@ -103,6 +81,5 @@ namespace DataStructures.RandomSelector {
 
             return _staticBuilder.Build();
         }
-    }
-   
+    }  
 }

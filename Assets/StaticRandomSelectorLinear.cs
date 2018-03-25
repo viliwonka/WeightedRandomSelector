@@ -11,6 +11,7 @@ using System;
 /// O(n) construction
 /// </summary>
 namespace DataStructures.RandomSelector {
+    using DataStructures.RandomSelector.Math;
 
     public class StaticRandomSelectorLinear<T> : IRandomSelector<T> {
 
@@ -22,31 +23,19 @@ namespace DataStructures.RandomSelector {
 
             this.items = items;
             this.CDA = CDA;
-            this.random = new System.Random(seed);
-            
+            this.random = new System.Random(seed);           
         }
       
         public T SelectRandomItem(float randomValue) {
         
-            int i = 0;
-            
-            while (i < items.Length && CDA[i] < randomValue)
-                i++;
-            
-            return items[i];
+            return items[CDA.SelectIndexBinarySearch(randomValue)];
         }
-
-
+        
         public T SelectRandomItem() {
-
+        
             float randomValue = (float) random.NextDouble();
-
-            int i = 0;
-
-            while (i < items.Length && CDA[i] < randomValue)
-                i++;
             
-            return items[i];
+            return items[CDA.SelectIndexBinarySearch(randomValue)];
         }
     }
 }
