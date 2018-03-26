@@ -2,18 +2,15 @@
 using System.Collections.Generic;
 using System;
 
-//TODO: change the comment
-/// <summary>
-/// By Vili Volcini
-/// Generic structure for high performance random selection of items on small or very big arrays
-/// Is precompiled/precomputed, and uses linear or binary search (depends on size of array) to find item based on random value
-/// O(log2(N)) per random pick for bigger arrays
-/// O(n) per random pick for smaller arrays
-/// O(n) construction
-/// </summary>
 namespace DataStructures.RandomSelector {
     using DataStructures.RandomSelector.Math;
 
+    /// <summary>
+    /// Dynamic selector allows you adding or removing items
+    /// Call "Build" after you finished modification
+    /// Switches between linear or binary search depending on count of items, making it more performant for general use case
+    /// </summary>
+    /// <typeparam name="T">Type of items you wish this selector returns</typeparam>
     public class DynamicRandomSelector<T> : IRandomSelector<T>, IRandomSelectorBuilder<T> {
     
         System.Random random;
@@ -21,41 +18,39 @@ namespace DataStructures.RandomSelector {
         // internal buffers
         List<T> itemsList;
         List<float> weightsList; 
-        List<float> CDL; // cummulative distribution list
-
-        // internal function that gets dynamically swapped on each Build
-        private Func<float, T> _selectRandomItem;
+        List<float> CDL; // Cummulative Distribution List
         
-        public DynamicRandomSelector(int seed = -1, int defaultBufferSize = 32) {
+        // internal function that gets dynamically swapped inside Build
+        private Func<List<float>, float, int> selectFunction;
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="seed"></param>
+        /// <param name="expectedNumberOfItems"></param>
+        public DynamicRandomSelector(int seed = -1, int expectedNumberOfItems = 32) {
         
             if(seed == -1)
                 random = new System.Random();
             else
                 random = new System.Random(seed);
 
-            itemsList = new List<T>(defaultBufferSize);
-            weightsList = new List<float>(defaultBufferSize);
-            CDL         = new List<float>(defaultBufferSize);
+            itemsList   = new List<T>    (expectedNumberOfItems);
+            weightsList = new List<float>(expectedNumberOfItems);
+            CDL         = new List<float>(expectedNumberOfItems);
         }
         
-        public DynamicRandomSelector(T[] items, float[] weights, int seed) : this(seed) {
+        public DynamicRandomSelector(T[] items, float[] weights, int seed = -1, int expectedNumberOfItems = 32) : this(seed, expectedNumberOfItems) {
         
-            for(int i = 0; i < items.Length; i++) {
-
-                itemsList.Add(items[i]);
-                weightsList.Add(weights[i]);
-            }
-        }
-      
-        public void Add(T item, float weight) {
+            for(int i = 0; i < items.Length; i++)
+                Add(items[i], weights[i]);
             
+            Build();
         }
 
-        public void Remove(T item) {
-        
-        }
-        
-        // clears everything, should make no garbage (unless internal lists hold objects that aren't referenced anywhere)
+        /// <summary>
+        /// Clears internal buffers, should make no garbage (unless internal lists hold objects that aren't referenced anywhere else)
+        /// </summary>
         public void Clear() {
 
             itemsList.Clear();
@@ -63,90 +58,78 @@ namespace DataStructures.RandomSelector {
             CDL.Clear();
         }
 
-        // must be called after modifying the selector (adding or removing items)
-        // recalculates CDL
-        // might make some garbage (list resize), this is why you should pick defaultBufferSize of your flavor to reduce this garbage, but after using this object for longer time, produced garbage will reduce to zero
-        // returns itself
-        public IRandomSelector<T> Build(int seed=-1) {
-        
-            // transfer weights
-            CDL.Clear();
-            CDL.AddRange(weightsList);
+        public void Add(T item, float weight) {
 
+            // ignore zero weight items
+            if (weight == 0)
+                return;
+
+            itemsList.Add(item);
+            weightsList.Add(weight);
+        }
+
+        public void Remove(T item) {
+
+            int index = itemsList.FindIndex((listItem) => itemsList.Equals(item));
+
+            itemsList.RemoveAt(index);
+            weightsList.RemoveAt(index);
+            // no need to remove from CDL, should be rebuilt instead
+        }
+
+        /// <summary>
+        /// Re/Builds internal CDL (Cummulative Distribution List)
+        /// Must be called after modifying (calling Add or Remove), or it will break. 
+        /// Switches between linear or binary search, depending on which one will be faster.
+        /// Might generate some garbage (list resize) on first few builds.
+        /// </summary>
+        /// <param name="seed">You can specify seed for internal random gen or leave it alone</param>
+        /// <returns>Returns itself</returns>
+        public IRandomSelector<T> Build(int seed = -1) {
+
+            if (itemsList.Count == 0)
+                throw new Exception("Cannot build with no items.");
+
+            // clear list and then transfer weights
+            CDL.Clear();           
+            for (int i = 0; i < weightsList.Count; i++)
+                CDL.Add(weightsList[i]);
+
+            
             RandomMath.BuildCumulativeDistribution(CDL);
             
-            if (seed == -1) {
-                // default behavior
-                // seed wasn't specified, keep same seed - avoids garbage collection from making new random
-            } 
-            else if(seed == -2) {
-                // special functionality of DynamicRandomSelector
-                seed = random.Next();
-                random = new Random(seed);
-            } else {
-                random = new Random(seed);
+            // default behavior
+            // if seed wasn't specified (it is seed==-1), keep same seed - avoids garbage collection from making new random
+            if(seed != -1) {
+            
+                // input -2 if you want to randomize seed
+                if(seed == -2) {
+                    seed = random.Next();
+                    random = new Random(seed);
+                }
+                else {
+                    random = new Random(seed);
+                }
             }
 
-            // 16 is break point
-            // if CDA array is smaller than 16, then pick linear search random selector, else pick binary search selector
-            // number 16 was calculated empirically (10 million random picks on both linear and binary to see where their performance is similar - crossing point)
-            if (CDL.Count < RandomMath.ListBreakpoint) {
-                _selectRandomItem = SelectLinearSearch;
-            }
-            else {
-                _selectRandomItem = SelectBinarySearch;
-            }
+            // RandomMath.ListBreakpoint decides where to use Linear or Binary search, based on internal buffer size
+            // if CDA array is smaller than breakpoint, then pick linear search random selector, else pick binary search selector
+            // RandomMath.ListBreakpoint was calculated empirically
+            if (CDL.Count < RandomMath.ListBreakpoint)
+                selectFunction = RandomMath.SelectIndexLinearSearch;
+            else
+                selectFunction = RandomMath.SelectIndexBinarySearch;
             
             return this;
         }
         
-        private T SelectLinearSearch(float randomValue) {
-
-            int i = 0;
-
-            while (i < itemsList.Count && CDL[i] < randomValue)
-                i++;
-
-            return itemsList[i];
-        }
-
-        private T SelectBinarySearch(float randomValue) {
-
-            int lo = 0;
-            int hi = CDL.Count - 1;
-            int index;
-
-            while (lo <= hi) {
-
-                // calculate median
-                index = lo + ((hi - lo) >> 1);
-
-                if (CDL[index] == randomValue) {
-                    return itemsList[index];
-                }
-                if (CDL[index] < randomValue) {
-                    lo = index + 1;
-                }
-                else {
-                    hi = index - 1;
-                }
-            }
-
-            index = lo;
-            
-            return itemsList[index];
-        }
-
         public T SelectRandomItem(float randomValue) {
-
-            return _selectRandomItem(randomValue);
+            return itemsList[ selectFunction(CDL, randomValue) ];
         }
         
         public T SelectRandomItem() {
-        
             float randomValue = (float) random.NextDouble();
-
-            return _selectRandomItem(randomValue);
+            return itemsList[ selectFunction(CDL, randomValue) ];
         }
     }
 }

@@ -13,11 +13,15 @@ using System;
 namespace DataStructures.RandomSelector {
     using DataStructures.RandomSelector.Math;
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class RandomSelectorBuilder<T> : IRandomSelectorBuilder<T> {
     
-        System.Random random;
-        List<T> itemBuffer;
-        List<float> weightBuffer;
+        private System.Random random;
+        private List<T> itemBuffer;
+        private List<float> weightBuffer;
 
         public RandomSelectorBuilder() {
 
@@ -26,13 +30,24 @@ namespace DataStructures.RandomSelector {
             weightBuffer = new List<float>();
         }
 
-        // Add item with weight
+        //TODO: complete doc
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="weight"></param>
         public void Add(T item, float weight) {
+
+            // ignore zero weight items
+            if (weight == 0)
+                return;
 
             itemBuffer.Add(item);
             weightBuffer.Add(weight);
         }
-        
+
+
+        //TODO: complete doc
         /// <summary>
         /// Builds RandomSelector & clears internal buffers
         /// </summary>
@@ -63,8 +78,15 @@ namespace DataStructures.RandomSelector {
         }
 
         static RandomSelectorBuilder<T> _staticBuilder = new RandomSelectorBuilder<T>();
-        
-        // non-instance based, single threaded only
+
+
+        //TODO: complete doc
+        /// <summary>
+        /// non-instance based, single threaded only 
+        /// </summary>
+        /// <param name="itemsArray"></param>
+        /// <param name="weights"></param>
+        /// <returns></returns>
         public static IRandomSelector<T> Build(T[] itemsArray, float[] weights) {
             
             for(int i = 0; i < itemsArray.Length; i++)
@@ -72,8 +94,15 @@ namespace DataStructures.RandomSelector {
 
             return _staticBuilder.Build();
         }
-        
-        // non-instance based, single threaded only
+
+
+        //TODO: complete doc
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="itemsArray"></param>
+        /// <param name="weights"></param>
+        /// <returns></returns>
         public static IRandomSelector<T> Build(List<T> itemsArray, List<float> weights) {
 
             for (int i = 0; i < itemsArray.Count; i++)
