@@ -52,3 +52,7 @@ You have two options:
 1. For each random pick, uniform random number is generated
 2. Depending on size of collection, linear or binary search is used to select correct index
 3. This index is used to return item from internal array/list. 
+
+#### Minimum of linear search and binary search
+![alt text](https://github.com/viliwonka/WeightedRandomSelector/tree/master/Documentation "Optimized search time")
+
