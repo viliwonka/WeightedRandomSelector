@@ -54,5 +54,5 @@ You have two options:
 3. This index is used to return item from internal array/list. 
 
 #### Minimum of linear search and binary search
-![alt text](https://github.com/viliwonka/WeightedRandomSelector/tree/master/Documentation "Optimized search time")
+![alt text](https://raw.githubusercontent.com/viliwonka/WeightedRandomSelector/master/Documentation/Complexity.png "Optimized search time")
 
