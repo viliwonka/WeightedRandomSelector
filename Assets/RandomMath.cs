@@ -9,14 +9,16 @@ namespace DataStructures.RandomSelector.Math {
     public static class RandomMath {
 
         /// <summary>
-        /// Breaking point between using Linear vs. Binary search for arrays (StaticSelector)
+        /// Breaking point between using Linear vs. Binary search for arrays (StaticSelector). 
+        /// Was calculated empirically.
         /// </summary>
-        public static readonly int ArrayBreakpoint = 54;
+        public static readonly int ArrayBreakpoint = 51;
         
         /// <summary>
-        /// Breaking point between using Linear vs. Binary search for lists (DynamicSelector)
+        /// Breaking point between using Linear vs. Binary search for lists (DynamicSelector). 
+        /// Was calculated empirically. 
         /// </summary>
-        public static readonly int ListBreakpoint = 28;
+        public static readonly int ListBreakpoint = 26;
         
         /// <summary>
         /// Builds cummulative distribution out of non-normalized weights inplace.
@@ -192,6 +194,11 @@ namespace DataStructures.RandomSelector.Math {
             return index;
         }
         
+        /// <summary>
+        /// Returns identity, array[i] = i
+        /// </summary>
+        /// <param name="length">Length of an array</param>
+        /// <returns>Identity array</returns>
         public static float[] IdentityArray(int length) {
 
             float[] array = new float[length];
@@ -201,7 +208,12 @@ namespace DataStructures.RandomSelector.Math {
             
             return array;
         }
-      
+
+        /// <summary>
+        /// Gemerates uniform random values for all indexes in array.
+        /// </summary>
+        /// <param name="list">The array where all values will be randomized.</param>
+        /// <param name="r">Random generator</param>
         public static void RandomWeightsArray(ref float[] array, System.Random r) {
             
             for (int i = 0; i < array.Length; i++) {
@@ -212,6 +224,12 @@ namespace DataStructures.RandomSelector.Math {
             }
         }
 
+        /// <summary>
+        /// Creates new array with uniform random variables. 
+        /// </summary>
+        /// <param name="r">Random generator</param>
+        /// <param name="length">Length of new array</param>
+        /// <returns>Array with random uniform random variables</returns>
         public static float[] RandomWeightsArray(System.Random r, int length) {
         
             float[] array = new float[length];
@@ -225,6 +243,12 @@ namespace DataStructures.RandomSelector.Math {
             return array;
         }
 
+
+        /// <summary>
+        /// Returns identity, list[i] = i
+        /// </summary>
+        /// <param name="length">Length of an list</param>
+        /// <returns>Identity list</returns>
         public static List<float> IdentityList(int length) {
 
             List<float> list = new List<float>(length);
@@ -235,6 +259,11 @@ namespace DataStructures.RandomSelector.Math {
             return list;
         }
 
+        /// <summary>
+        /// Gemerates uniform random values for all indexes in list.
+        /// </summary>
+        /// <param name="list">The list where all values will be randomized.</param>
+        /// <param name="r">Random generator</param>
         public static void RandomWeightsList(ref List<float> list, System.Random r) {
 
             for (int i = 0; i < list.Count; i++) {

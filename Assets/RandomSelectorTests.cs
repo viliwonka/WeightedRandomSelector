@@ -21,19 +21,22 @@ namespace DataStructures.RandomSelector.Test {
 
             var result = TestEqualityOfLinearVsBinarySearch();
 
-            Debug.Log("Do both searches (linear and binary) produce identical results? " + (result?"Yes":"No"));
-            
-            int optimalBreakpointArray = FindOptimalBreakpointArray();
+            Debug.Log("Do both searches (linear and binary) produce identical results? " + (result?"Yes":"No"));           
 
-            Debug.Log("Optimal breakpoint for arrays is at size of " + optimalBreakpointArray);
+            int optimalBreakpointArray = FindOptimalBreakpointArray();
+            
+            Debug.Log("Optimal breakpoint for arrays is at size of " + optimalBreakpointArray);           
             
             int optimalBreakpointList = FindOptimalBreakpointList();
-
+            
             Debug.Log("Optimal breakpoint for lists is at size of " + optimalBreakpointList);
         }
         
 
-        // test both searches, they should return identical indexes for all random values
+        /// <summary>
+        /// Test and compare linear and binary searches, they should return identical results
+        /// </summary>
+        /// <returns></returns>
         bool TestEqualityOfLinearVsBinarySearch() {
         
             var randomSelector = RandomSelectorBuilder<float>.Build(
@@ -41,10 +44,10 @@ namespace DataStructures.RandomSelector.Test {
                 new float[] { 1f  , 2f,   3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f }, 
                 new float[] { 0.5f, 1f, 0.5f, 1f, 1f, 2f, 3f, 1f, 0.1f,1f }
             );
-
+            
             var random = new System.Random();
-
-            for (int i = 0; i < 1000000; i++) {
+            
+                for (int i = 0; i < 1000000; i++) {
 
                 float u = i / 999999f;
                 float r = (float) random.NextDouble();
@@ -52,7 +55,10 @@ namespace DataStructures.RandomSelector.Test {
                 float[] randomWeights = RandomMath.RandomWeightsArray(random, 33);
                 
                 RandomMath.BuildCumulativeDistribution(randomWeights);
-                
+
+                if (randomWeights.SelectIndexLinearSearch(1f) != randomWeights.SelectIndexBinarySearch(1f))
+                    return false;
+
                 if (randomWeights.SelectIndexLinearSearch(u) != randomWeights.SelectIndexBinarySearch(u)) {
                 
                     Debug.Log("Not matching u");

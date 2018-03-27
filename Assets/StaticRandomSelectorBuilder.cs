@@ -30,12 +30,12 @@ namespace DataStructures.RandomSelector {
             weightBuffer = new List<float>();
         }
 
-        //TODO: complete doc
         /// <summary>
-        /// 
+        /// Add new item with weight into collection. Items with zero weight will be ignored.
+        /// Be sure to call Build() after you are done adding items.
         /// </summary>
-        /// <param name="item"></param>
-        /// <param name="weight"></param>
+        /// <param name="item">Item that will be returned on random selection</param>
+        /// <param name="weight">Non-zero non-normalized weight</param>
         public void Add(T item, float weight) {
 
             // ignore zero weight items
@@ -45,31 +45,28 @@ namespace DataStructures.RandomSelector {
             itemBuffer.Add(item);
             weightBuffer.Add(weight);
         }
-
-
-        //TODO: complete doc
+        
         /// <summary>
-        /// Builds RandomSelector & clears internal buffers
+        /// Builds StaticRandomSelector & clears internal buffers. Must be called after you finish Add-ing items.
         /// </summary>
         /// <param name="seed">Seed for random selector. If you leave it -1, the internal random will generate one.</param>
-        /// <returns>Returns IRandomSelector, underlying object depends on size of items inside object.</returns>
+        /// <returns>Returns IRandomSelector, underlying objects are either StaticRandomSelectorLinear or StaticRandomSelectorBinary. Both are non-mutable.</returns>
         public IRandomSelector<T> Build(int seed = -1) {
 
             T[] items = itemBuffer.ToArray();
             float[] CDA = weightBuffer.ToArray();
             
-            itemBuffer.Clear();     // potential GC problem, read if Unity clears lists or sets count to 0
+            itemBuffer.Clear();     
             weightBuffer.Clear();
 
             RandomMath.BuildCumulativeDistribution(CDA);
             
             if(seed == -1)
                 seed = random.Next();
-
-            // 16 is break point
-            // if CDA array is smaller than 16, then pick linear search random selector, else pick binary search selector
-            // number 16 was calculated empirically (10 million random picks on both linear and binary to see where their performance is similar - crossing point)
-            if(CDA.Length < RandomMath.ArrayBreakpoint) 
+                
+            // RandomMath.ArrayBreakpoint decides where to use Linear or Binary search, based on internal buffer size
+            // if CDA array is smaller than breakpoint, then pick linear search random selector, else pick binary search selector
+            if (CDA.Length < RandomMath.ArrayBreakpoint) 
            
                 return new StaticRandomSelectorLinear<T>(items, CDA, seed);
             else 
@@ -79,36 +76,45 @@ namespace DataStructures.RandomSelector {
 
         static RandomSelectorBuilder<T> _staticBuilder = new RandomSelectorBuilder<T>();
 
-
-        //TODO: complete doc
         /// <summary>
-        /// non-instance based, single threaded only 
+        /// non-instance based, single threaded only. For ease of use. 
+        /// Build from array of items/weights.
         /// </summary>
-        /// <param name="itemsArray"></param>
-        /// <param name="weights"></param>
+        /// <param name="itemsArray">Array of items</param>
+        /// <param name="weightsArray">Array of non-zero non-normalized weights. Have to be same length as itemsArray.</param>
         /// <returns></returns>
-        public static IRandomSelector<T> Build(T[] itemsArray, float[] weights) {
-            
+        public static IRandomSelector<T> Build(T[] itemsArray, float[] weightsArray) {
+
+            _staticBuilder.Clear();    
+
             for(int i = 0; i < itemsArray.Length; i++)
-                _staticBuilder.Add(itemsArray[i], weights[i]);
+                _staticBuilder.Add(itemsArray[i], weightsArray[i]);
 
             return _staticBuilder.Build();
         }
 
 
-        //TODO: complete doc
         /// <summary>
-        /// 
+        /// non-instance based, single threaded only. For ease of use. 
+        /// Build from array of items/weights.
         /// </summary>
-        /// <param name="itemsArray"></param>
-        /// <param name="weights"></param>
+        /// <param name="itemsList">List of weights</param>
+        /// <param name="weightsList">List of non-zero non-normalized weights. Have to be same length as itemsList.</param>
         /// <returns></returns>
-        public static IRandomSelector<T> Build(List<T> itemsArray, List<float> weights) {
+        public static IRandomSelector<T> Build(List<T> itemsList, List<float> weightsList) {
+            
+            _staticBuilder.Clear();
 
-            for (int i = 0; i < itemsArray.Count; i++)
-                _staticBuilder.Add(itemsArray[i], weights[i]);
+            for (int i = 0; i < itemsList.Count; i++)
+                _staticBuilder.Add(itemsList[i], weightsList[i]);
 
             return _staticBuilder.Build();
+        }
+        
+        private void Clear() {
+
+            itemBuffer.Clear();
+            weightBuffer.Clear();
         }
     }  
 }

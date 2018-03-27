@@ -11,7 +11,7 @@ namespace DataStructures.RandomSelector {
 
         System.Random random;
 
-        //internal buffers
+        // internal buffers
         T[] items;
         float[] CDA;
 
