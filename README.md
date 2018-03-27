@@ -13,6 +13,7 @@ It is very commonly used thing in video game development and it is suprisingly t
 * readable,
 * easy to use, 
 * numerically precise
+* thread-safe selecting
 
 #### Use cases
 
