@@ -1,7 +1,5 @@
 # Weighted Random Selector
 
-## Still WIP, do not use until I remove this notice
-
 ### Description
 
 This repository contains over engineered code for selecting items randomly based on weights.
