@@ -2,7 +2,7 @@
 
 ### Description
 
-This repository contains over engineered code for selecting items randomly based on weights.
+This repository contains code for selecting items randomly based on weights.
 It is very commonly used thing in video game development and it is suprisingly tricky to get right.
 
 ### It was designed to be:
