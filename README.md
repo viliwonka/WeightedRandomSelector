@@ -58,7 +58,29 @@ This picture demostrates what is happening under hood, to achieve good performan
 
 ![alt text](https://raw.githubusercontent.com/viliwonka/WeightedRandomSelector/master/Documentation/Complexity.png "Optimized search time")
 
-
-#### TL; DR
+### In short
 
 Just use DynamicRandomSelector, and do not forget to call Build method after modifying (adding & removing) it. 
+
+#### Example code
+
+```csharp
+var selector = new DynamicRandomSelector<float>();
+
+// adding items
+for (int i = 0; i < 32; i++) {
+
+    var item = i;
+    var unnormalizedWeight = Mathf.Sqrt(i + 1); //non zero weight
+
+    selector.Add(item, unnormalizedWeight);
+}
+
+// building after modification is complete
+selector.Build();
+
+// picking random items
+for (int i = 0; i < 10000; i++) {
+    var randomItem = selector.SelectRandomItem();
+}
+```
