@@ -3,7 +3,7 @@
 ### Description
 
 This repository contains code for selecting items randomly based on weights.
-It is very commonly used thing in video game development and it is suprisingly tricky to get right.
+It is very commonly used thing in video game development and it is suprisingly tricky to get it right.
 
 ### It was designed to be:
 
@@ -53,5 +53,12 @@ You have two options:
 3. This index is used to return item from internal array/list. 
 
 #### Minimum of linear search and binary search
+
+This picture demostrates what is happening under hood, to achieve good performance. 
+
 ![alt text](https://raw.githubusercontent.com/viliwonka/WeightedRandomSelector/master/Documentation/Complexity.png "Optimized search time")
 
+
+#### TL; DR
+
+Just use DynamicRandomSelector, and do not forget to call Build method after modifying (adding & removing) it. 
