@@ -149,8 +149,7 @@ namespace DataStructures.RandomSelector.Math {
         public static int SelectIndexLinearSearch(this List<float> CDL, float randomValue) {
 
             int i = 0;
-            int Length = CDL.Count;
-
+            
             // last element, CDL[CDL.Length-1] should always be 1
             while (CDL[i] < randomValue)
                 i++;

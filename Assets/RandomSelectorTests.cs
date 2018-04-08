@@ -17,6 +17,7 @@ namespace DataStructures.RandomSelector.Test {
 
     public class RandomSelectorTests : MonoBehaviour {
     
+        // Run series of tests
         void Start() {
 
             var result = TestEqualityOfLinearVsBinarySearch();
@@ -30,24 +31,20 @@ namespace DataStructures.RandomSelector.Test {
             int optimalBreakpointList = FindOptimalBreakpointList();
             
             Debug.Log("Optimal breakpoint for lists is at size of " + optimalBreakpointList);
+
+            TestStaticSelector();
+            TestDynamicSelector();
         }
         
-
         /// <summary>
         /// Test and compare linear and binary searches, they should return identical results
         /// </summary>
         /// <returns></returns>
         bool TestEqualityOfLinearVsBinarySearch() {
         
-            var randomSelector = RandomSelectorBuilder<float>.Build(
-
-                new float[] { 1f  , 2f,   3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f }, 
-                new float[] { 0.5f, 1f, 0.5f, 1f, 1f, 2f, 3f, 1f, 0.1f,1f }
-            );
-            
             var random = new System.Random();
             
-                for (int i = 0; i < 1000000; i++) {
+            for (int i = 0; i < 1000000; i++) {
 
                 float u = i / 999999f;
                 float r = (float) random.NextDouble();
@@ -162,6 +159,7 @@ namespace DataStructures.RandomSelector.Test {
             return optimalBreakpoint;
         }
 
+        //same as before, but for lists instead of arrays
         int FindOptimalBreakpointList() {
 
             int optimalBreakpoint = 2;
@@ -246,5 +244,80 @@ namespace DataStructures.RandomSelector.Test {
             return optimalBreakpoint;
         }
 
+        void TestStaticSelector() {
+
+            System.Random r = new System.Random();
+
+            RandomSelectorBuilder<float> builder = new RandomSelectorBuilder<float>();
+
+            // add items
+            // pair (item, unnormalized probability)
+            for(int i = 0; i < 32; i++)
+                builder.Add(i, Mathf.Sqrt(i+1));
+
+            //build with seed 42
+            IRandomSelector<float> selector = builder.Build(42);
+
+            string print = "";
+
+            for(int i = 0; i < 100; i++) {
+                print += i.ToString() + ". " + selector.SelectRandomItem() + "\n";
+            }
+
+            Debug.Log(print);
+
+            /// LONG version, to test binary search
+            // add items
+            // pair (item, unnormalized probability)
+            for (int i = 0; i < 1024; i++)
+                builder.Add(i, Mathf.Sqrt(i + 1));
+
+            //build with seed 42
+            IRandomSelector<float> longSelector = builder.Build(42);
+
+            // just run 10000 tests, should be enough
+            for (int i = 0; i < 10000; i++)
+                longSelector.SelectRandomItem();
+
+            // wont print long version, would spam console too much
+        }
+
+        void TestDynamicSelector() {
+
+            //seed = 42, expected number of item = 32
+            DynamicRandomSelector<float> selector = new DynamicRandomSelector<float>(42, 32);
+
+            // add items
+            for (int i = 0; i < 32; i++)
+                selector.Add(i, Mathf.Sqrt(i + 1));
+
+            // Build internals
+            // pair (item, unnormalized probability)
+            selector.Build();
+
+            string print = "";
+
+            for (int i = 0; i < 100; i++) {
+                print += i.ToString() + " " + selector.SelectRandomItem() + "\n";
+            }
+
+            Debug.Log(print);
+
+            /// LONG version, to test binary search
+            
+            //we can just keep adding new members
+            for(int i = 0; i < 1024; i++) {
+                selector.Add(i, Mathf.Sqrt(i));
+            }
+
+            //do not forget to (re)build
+            selector.Build();
+
+            //just test it this way
+            for(int i = 0; i < 10000; i++) {
+                selector.SelectRandomItem();
+            }
+            // wont print long version, would spam console too much
+        }
     }
 }
