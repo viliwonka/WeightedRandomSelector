@@ -36,7 +36,7 @@ namespace DataStructures.RandomSelector {
         /// <returns>Returns item</returns>
         public T SelectRandomItem(float randomValue) {
         
-            return items[CDA.SelectIndexBinarySearch(randomValue)];
+            return items[ CDA.SelectIndexLinearSearch(randomValue) ];
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace DataStructures.RandomSelector {
         
             float randomValue = (float) random.NextDouble();
             
-            return items[CDA.SelectIndexBinarySearch(randomValue)];
+            return items[ CDA.SelectIndexLinearSearch(randomValue) ];
         }
     }
 }
